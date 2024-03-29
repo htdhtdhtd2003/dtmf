@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DTMF Tone Generator</title>
+</head>
+<body>
+<label for="phoneNumber">Enter Telephone Number:</label>
+<input type="text" id="phoneNumber" placeholder="Enter phone number">
+<button onclick="dialNumber()">Dial Number</button>
+
+<script>
+let phoneNumber;
+let currentDigitIndex = 0;
+
+function dialNumber() {
+    phoneNumber = document.getElementById('phoneNumber').value.trim();
+    
+    if (phoneNumber === '') {
+        alert('Please enter a phone number.');
+        return;
+    }
+
+    // Reset digit index
+    currentDigitIndex = 0;
+
+    // Start dialing process
+    dialNextDigit();
+}
+
+function dialNextDigit() {
+    if (currentDigitIndex >= phoneNumber.length) {
+        // All digits have been dialed
+        return;
+    }
+
+    const dtmfFrequencies = {
+        '1': [697, 1209],
+        '2': [697, 1336],
+        '3': [697, 1477],
+        '4': [770, 1209],
+        '5': [770, 1336],
+        '6': [770, 1477],
+        '7': [852, 1209],
+        '8': [852, 1336],
+        '9': [852, 1477],
+        '0': [941, 1336],
+        '*': [941, 1209],
+        '#': [941, 1477]
+    };
+
+    const digit = phoneNumber[currentDigitIndex];
+    if (digit in dtmfFrequencies) {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator1 = audioContext.createOscillator();
+        const oscillator2 = audioContext.createOscillator();
+
+        oscillator1.frequency.value = dtmfFrequencies[digit][0];
+        oscillator2.frequency.value = dtmfFrequencies[digit][1];
+
+        oscillator1.connect(audioContext.destination);
+        oscillator2.connect(audioContext.destination);
+
+        oscillator1.start();
+        oscillator2.start();
+
+        // Play each digit for 0.2 seconds
+        setTimeout(() => {
+            oscillator1.stop();
+            oscillator2.stop();
+            currentDigitIndex++;
+            // Introduce a pause of 0.5 seconds before dialing the next digit
+            setTimeout(dialNextDigit, 1000);
+        }, 200);
+    }
+}
+</script>
+</body>
+</html>
